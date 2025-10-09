@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Data {
-    public class EFBowlingLeagueRepository : IBowlingLeagueRepository {
+    public class EFBowlingLeagueRepository : IBowlingLeagueRepository
+    {
         private BowlingLeagueContext _bowlingContext;
 
         public EFBowlingLeagueRepository(BowlingLeagueContext temp) { _bowlingContext = temp; }
@@ -23,5 +24,11 @@ namespace Backend.Data {
         public IEnumerable<ZtblSkipLabel> ZtblSkipLabels => _bowlingContext.ZtblSkipLabels;
 
         public IEnumerable<ZtblWeek> ZtblWeek => _bowlingContext.ZtblWeeks;
+
+        public void UpdateBowler(Bowler bowler)
+        {
+            _bowlingContext.Update(bowler);
+            _bowlingContext.SaveChanges();
+        }
     }
 }

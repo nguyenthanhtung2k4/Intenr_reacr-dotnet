@@ -1,8 +1,22 @@
 import { useEffect, useState } from 'react';
-import { Bowler } from './types/Bowler';
+import { useNavigate } from 'react-router-dom';
+import { Bowler } from '../../types/Bowler';
 
 function BowlersTable(props: any) {
+  const navigate = useNavigate();
   const [bowlerData, setBowlerData] = useState<Bowler[]>([]);
+  const [search, setSearch] = useState('');
+
+  // HandleEdit
+  var handleEdit = (ID: number) => {
+    console.log('EDIT', ID);
+    navigate(`edit/${ID}`);
+  };
+
+  // HandleDelete
+  var handleDelete = (ID: number) => {
+    console.log('DELETE', ID);
+  };
 
   // Updated to handle errors thrown when the backend isn't running (generated w/ help from ChatGPT)
   useEffect(() => {
@@ -23,19 +37,36 @@ function BowlersTable(props: any) {
     fetchBowlerData();
   }, []);
 
-  const filteredTeamNames = props.displayTeams;
+  let filteredBowlers = bowlerData;
 
-  var filteredBowlers = bowlerData.filter((b) =>
-    filteredTeamNames.includes(b.team.teamName),
-  );
+  // Lọc theo Teams được truyền từ props
+  if (props.displayTeams && props.displayTeams.length > 0) {
+    filteredBowlers = filteredBowlers.filter((b) =>
+      props.displayTeams.includes(b.team?.teamName || ''),
+    );
+  }
 
-  // If nothing was passed, display them all
-  if (!filteredTeamNames || filteredTeamNames.length === 0) {
-    filteredBowlers = bowlerData;
+  // Lọc theo ô tìm kiếm (search input)
+  if (search) {
+    const lowerCaseSearch = search.toLowerCase();
+    filteredBowlers = filteredBowlers.filter(
+      (b) =>
+        b.bowlerLastName.toLowerCase().includes(lowerCaseSearch) ||
+        b.team?.teamName.toLowerCase().includes(lowerCaseSearch) ||
+        b.bowlerFirstName.toLowerCase().includes(lowerCaseSearch),
+    );
   }
 
   return (
     <div>
+      <div className="search">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search Name"
+        />
+      </div>
       <div className="row">
         <table className="table table-bordered">
           <thead>
@@ -45,6 +76,8 @@ function BowlersTable(props: any) {
               <th>Address</th>
               <th>Phone</th>
               <th>Team</th>
+              <th>Edit</th>
+              <th>Delete</th>
             </tr>
           </thead>
           <tbody>
@@ -61,6 +94,19 @@ function BowlersTable(props: any) {
                 </td>
                 <td>{b.bowlerPhoneNumber}</td>
                 <td>{b.team?.teamName}</td>
+                <td>
+                  <button type="button" onClick={() => handleEdit(b.bowlerId)}>
+                    Edit
+                  </button>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(b.bowlerId)}
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

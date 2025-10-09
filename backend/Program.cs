@@ -17,7 +17,19 @@ builder.Services.AddDbContext<BowlingLeagueContext>(options =>
 
 builder.Services.AddScoped<IBowlingLeagueRepository, EFBowlingLeagueRepository>(); // Everyone gets their own context; ABSTRACTION
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        policy => policy.WithOrigins("http://localhost:3000") // Đảm bảo URL này khớp với Frontend
+                        .AllowAnyHeader()
+                        .WithMethods("GET", "POST", "PUT", "PATCH", "DELETE")); // ✅ Cần thêm PATCH
+});
+
+
+
+
 var app = builder.Build();
+app.UseCors("AllowReactApp"); 
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment()) {

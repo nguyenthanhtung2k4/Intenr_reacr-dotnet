@@ -1,5 +1,6 @@
 ﻿namespace Backend.Data {
-    public interface IBowlingLeagueRepository {
+    public interface IBowlingLeagueRepository
+    {
         IEnumerable<Bowler> Bowlers { get; }
 
         IEnumerable<BowlerScore> Scores { get; }
@@ -17,5 +18,7 @@
         IEnumerable<ZtblSkipLabel> ZtblSkipLabels { get; }
 
         IEnumerable<ZtblWeek> ZtblWeek { get; }
+        
+        void UpdateBowler(Bowler bowler);
     }
 }
