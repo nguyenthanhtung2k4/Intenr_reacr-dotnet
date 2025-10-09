@@ -3,7 +3,9 @@ import './App.css';
 import Header from './Header';
 import BowlersTable from './component/Home/BowlersTable';
 import { Routes, Route } from 'react-router-dom';
+import Delete from './component/Home/Detele';
 import Edit from './component/Home/Edit';
+import Create from './component/Home/Create';
 
 function App() {
   // const Team = ['Marlins', 'Sharks', 'Terrapins', 'Barracudas', 'Dolphins'];
@@ -17,7 +19,9 @@ function App() {
           path="/"
           element={<BowlersTable displayTeams={['Marlins', 'Sharks']} />}
         />
+        <Route path="/create" element={<Create />} />
         <Route path="/edit/:id" element={<Edit />} />
+        <Route path="/detele/:id" element={<Delete />} />
       </Routes>
     </div>
   );

@@ -1,3 +1,4 @@
+/* eslint-disable react/style-prop-object */
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bowler } from '../../types/Bowler';
@@ -16,6 +17,11 @@ function BowlersTable(props: any) {
   // HandleDelete
   var handleDelete = (ID: number) => {
     console.log('DELETE', ID);
+    navigate(`delete/${ID}`);
+  };
+  // handleCreate
+  var handleCreate = () => {
+    navigate(`create/`);
   };
 
   // Updated to handle errors thrown when the backend isn't running (generated w/ help from ChatGPT)
@@ -59,13 +65,23 @@ function BowlersTable(props: any) {
 
   return (
     <div>
-      <div className="search">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search Name"
-        />
+      <div className="display" style={{ display: 'flex' }}>
+        <div className="create">
+          <button type="button" onClick={handleCreate}>
+            Create
+          </button>
+        </div>
+        <div
+          className="search"
+          style={{ marginLeft: 'auto', marginRight: 'auto', width: 350 }}
+        >
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search Name"
+          />
+        </div>
       </div>
       <div className="row">
         <table className="table table-bordered">
