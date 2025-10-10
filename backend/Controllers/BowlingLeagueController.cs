@@ -108,5 +108,27 @@ namespace Backend.Controllers
                 return NotFound(e);
             }
         }
+
+        [HttpGet("teams")]
+        public ActionResult<Team> getTeam()
+        {
+            var teams = _bowlingLeagueRepository.Teams;
+            try
+            {
+                if (teams == null )
+                {
+                    return NotFound("Khong tium thay teams!");
+
+                }
+                return Ok(teams);
+
+            }
+            catch (System.Exception)
+            {
+
+                throw;
+            }
+        }
+
     }
 }
