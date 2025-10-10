@@ -20,5 +20,6 @@
         IEnumerable<ZtblWeek> ZtblWeek { get; }
         
         void UpdateBowler(Bowler bowler);
+        void createBowler(Bowler bowler);
     }
 }

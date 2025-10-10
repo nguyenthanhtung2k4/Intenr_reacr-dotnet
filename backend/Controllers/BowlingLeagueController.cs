@@ -72,8 +72,41 @@ namespace Backend.Controllers
             {
                 return NotFound(ex);
             }
+        }
+        [HttpPost]
+        public IActionResult Post([FromBody] BowlerPostDto postDto)
+        {
+            var Data = _bowlingLeagueRepository.Bowlers;
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState); // Trả về 400 Bad Request nếu dữ liệu không hợp lệ
+            }
+            if (Data == null)
+            {
+                return NotFound();
+            }
 
+            var new_data = new Bowler
+            {
+                BowlerLastName = postDto.BowlerLastName,
+                BowlerFirstName = postDto.BowlerFirstName,
+                BowlerAddress = postDto.BowlerAddress,
+                BowlerCity = postDto.BowlerCity,
+                BowlerZip = postDto.BowlerZip,
+                BowlerPhoneNumber = postDto.BowlerPhoneNumber,
+                TeamId = postDto.TeamID
+            };
 
+            try
+            {
+                _bowlingLeagueRepository.createBowler(new_data);
+                return Ok(new_data);
+
+            }
+            catch (Exception e)
+            {
+                return NotFound(e);
+            }
         }
     }
 }

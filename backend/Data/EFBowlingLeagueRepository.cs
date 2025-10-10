@@ -30,5 +30,13 @@ namespace Backend.Data {
             _bowlingContext.Update(bowler);
             _bowlingContext.SaveChanges();
         }
+        
+        public void createBowler(Bowler bowler)
+        {
+            _bowlingContext.Add(bowler);
+            _bowlingContext.SaveChanges();
+        }
+
+
     }
 }
