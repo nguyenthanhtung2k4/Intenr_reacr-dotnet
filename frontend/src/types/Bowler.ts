@@ -1,9 +1,9 @@
 export type Bowler = {
   bowlerId: number;
-  IsDelete: boolean;
+  isDelete: boolean;
   bowlerLastName: string;
   bowlerFirstName: string;
-  bowlerMiddleInit: string;
+  bowlerMiddleInit: string | null;
   bowlerAddress: string;
   bowlerCity: string;
   bowlerState: string;

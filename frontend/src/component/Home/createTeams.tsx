@@ -1,33 +1,24 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { createTeam } from '../../services/api.services';
 
-// Định nghĩa giao diện (interface) cho dữ liệu đội
 interface TeamData {
   TeamId: string;
   TeamName: string;
   CaptainId: string;
 }
 
-// URL endpoint của API POST Team
-const API_URL = 'http://localhost:5231/api/BowlingLeague/teams';
-// Lưu ý: Endpoint trong Controller của bạn là /api/BowlingLeague/teams, hãy đảm bảo nó khớp
-
 const CreateTeams: React.FC = () => {
   const navigate = useNavigate();
-  // State để lưu trữ dữ liệu form
   const [formData, setFormData] = useState<TeamData>({
-    // Bạn có thể bỏ qua TeamId nếu nó là trường tự động tạo
     TeamId: '',
     TeamName: '',
     CaptainId: '',
   });
 
-  // State để hiển thị thông báo trạng thái cho người dùng
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // 1. Hàm xử lý thay đổi input
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -37,7 +28,13 @@ const CreateTeams: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatusMessage('Đang gửi dữ liệu...');
+    if (!formData.TeamName) {
+      setStatusMessage('❌ Tên đội không được để trống.');
+      return;
+    }
+
+    setIsLoading(true);
+    setStatusMessage('Đang tạo đội...');
 
     const payload = {
       TeamName: formData.TeamName,
@@ -45,124 +42,99 @@ const CreateTeams: React.FC = () => {
     };
 
     try {
-      const response = await axios.post(API_URL, payload);
+      await createTeam(payload);
 
-      setStatusMessage(
-        `✅ Tạo đội thành công! ID đội mới: ${response.data.TeamId}`,
-      );
+      setStatusMessage('✅ Tạo đội thành công! Đang chuyển hướng...');
 
-      setFormData({
-        TeamId: '',
-        TeamName: '',
-        CaptainId: '',
-      });
-    } catch (error) {
+      setFormData({ TeamId: '', TeamName: '', CaptainId: '' });
+
+      setTimeout(() => {
+        navigate('/view-teams');
+      }, 1500);
+    } catch (error: any) {
       console.error('Lỗi khi tạo đội:', error);
-
-      if (axios.isAxiosError(error) && error.response) {
-        // Lỗi từ server (ví dụ: 400 Bad Request)
-        setStatusMessage(
-          `❌ Lỗi: ${error.response.status} - ${error.response.data.title || 'Không thể tạo đội.'}`,
-        );
-      } else {
-        setStatusMessage('❌ Lỗi mạng hoặc lỗi không xác định.');
-      }
+      setStatusMessage(
+        error.message || '❌ Lỗi: Không thể tạo đội. Vui lòng kiểm tra API.',
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  function handleCreate(arg0: string): void {
-    navigate('../view-teams');
-  }
-
-  console.log(statusMessage);
+  var handleCreate = (type: string) => {
+    navigate(`/${type}`);
+  };
 
   return (
-    <div className="full">
-      <div
-        style={{
-          padding: '20px',
-          maxWidth: '400px',
-          margin: 'auto',
-          border: '1px solid #ccc',
-          borderRadius: '8px',
-        }}
-      >
-        <h2>Tạo Đội Bowling Mới</h2>
+    <div className="max-w-md mx-auto p-8 bg-white shadow-xl rounded-lg my-8">
+      <h1 className="text-2xl font-bold mb-6 text-center text-indigo-700">
+        Tạo Đội Mới
+      </h1>
 
-        <form onSubmit={handleSubmit}>
-          {/* Input Tên Đội (TeamName) */}
-          <div>
-            <label htmlFor="TeamName">Tên Đội:</label>
-            <input
-              type="text"
-              id="TeamName"
-              name="TeamName"
-              value={formData.TeamName}
-              className="border p-2 rounded-md w-full"
-              onChange={handleChange}
-              required
-              style={{ width: '100%', padding: '8px', margin: '5px 0' }}
-            />
-          </div>
-
-          {/* Input ID Đội Trưởng (CaptainId) */}
-          <div>
-            <label htmlFor="CaptainId">ID Đội Trưởng (Tùy chọn):</label>
-            <input
-              type="number" // Sử dụng type="number" cho ID
-              id="CaptainId"
-              name="CaptainId"
-              value={formData.CaptainId}
-              className="border p-2 rounded-md w-full"
-              onChange={handleChange}
-              style={{ width: '100%', padding: '8px', margin: '5px 0' }}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading || !formData.TeamName} // Vô hiệu hóa khi đang loading hoặc Tên đội trống
-            style={{
-              padding: '10px 15px',
-              marginTop: '15px',
-              backgroundColor: isLoading ? '#ccc' : '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {isLoading ? 'Đang Tạo...' : 'Tạo Đội'}
-          </button>
-        </form>
-
-        {/* Hiển thị trạng thái */}
-        {/* <p
-          style={{
-            marginTop: '20px',
-            fontWeight: 'bold',
-            color: statusMessage.startsWith('❌')
-              ? 'red'
-              : statusMessage.startsWith('✅')
-                ? 'green'
-                : 'black',
-          }}
+      {statusMessage && (
+        <p
+          className={`p-3 rounded-md mb-4 text-center ${statusMessage.startsWith('❌') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}
         >
           {statusMessage}
-        </p> */}
-        <br />
-        <br />
-        <div className="view">
-          <button
-            type="button"
-            onClick={() => handleCreate('teams')}
-            className="w-full s:w-auto bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+        </p>
+      )}
+
+      <form onSubmit={handleSubmit}>
+        {/* Input TeamName */}
+        <div className="mb-4">
+          <label
+            htmlFor="TeamName"
+            className="block text-gray-700 text-sm font-bold mb-2"
           >
-            View Teams
-          </button>
+            Tên Đội:
+          </label>
+          <input
+            id="TeamName"
+            type="text"
+            name="TeamName"
+            value={formData.TeamName}
+            onChange={handleChange}
+            placeholder="Nhập tên đội"
+            required
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          />
         </div>
+
+        <div className="mb-4">
+          <label
+            htmlFor="CaptainId"
+            className="block text-gray-700 text-sm font-bold mb-2"
+          >
+            ID Đội Trưởng (Tùy chọn):
+          </label>
+          <input
+            id="CaptainId"
+            type="text"
+            name="CaptainId"
+            value={formData.CaptainId}
+            onChange={handleChange}
+            placeholder="Nhập ID đội trưởng"
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={isLoading || !formData.TeamName}
+          className={`w-full font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ${isLoading || !formData.TeamName ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+        >
+          {isLoading ? 'Đang Tạo...' : 'Tạo Đội'}
+        </button>
+      </form>
+
+      <div className="mt-6">
+        <button
+          type="button"
+          onClick={() => handleCreate('view-teams')}
+          className="w-full bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition duration-300"
+        >
+          Xem Danh Sách Đội
+        </button>
       </div>
     </div>
   );

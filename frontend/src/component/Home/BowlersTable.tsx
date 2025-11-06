@@ -1,116 +1,114 @@
-/* eslint-disable react/style-prop-object */
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bowler } from '../../types/Bowler';
+import { fetchAllBowlers } from '../../services/api.services';
 
 function BowlersTable(props: any) {
   const navigate = useNavigate();
   const [bowlerData, setBowlerData] = useState<Bowler[]>([]);
   const [search, setSearch] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // HandleTeam
   var handleTeam = (ID: number) => {
-    console.log('Team', ID);
     navigate(`team/${ID}`);
   };
-  // HandleEdit
   var handleEdit = (ID: number) => {
-    console.log('EDIT', ID);
-    navigate(`edit/${ID}`);
+    navigate(`bowler/${ID}`);
   };
-
-  // HandleDelete
   var handleDelete = (ID: number) => {
-    console.log('DELETE', ID);
     navigate(`delete/${ID}`);
   };
-  // handleCreate
   var handleCreate = (type: string) => {
-    navigate(`${type}/`);
+    if (type === 'create') {
+      navigate(`bowler/new`);
+    } else {
+      navigate(`view-teams`);
+    }
   };
 
-  // Updated to handle errors thrown when the backend isn't running (generated w/ help from ChatGPT)
   useEffect(() => {
     const fetchBowlerData = async () => {
       try {
-        const rsp = await fetch('http://localhost:5231/api/BowlingLeague');
-        if (!rsp.ok) {
-          throw new Error('Failed to fetch data');
-        }
-        const b = await rsp.json();
-        const allBowlers = b || [];
-        setBowlerData(allBowlers);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setBowlerData([]); // Set empty array in case of error
+        setError(null);
+        setIsLoading(true);
+
+        // Gọi API Service
+        const b = await fetchAllBowlers();
+        setBowlerData(b || []);
+      } catch (ex: any) {
+        console.error('Error fetching data:', ex);
+        // Hiển thị thông báo lỗi từ hàm service (hoặc lỗi chung)
+        setError(ex.message || 'Lỗi: Không thể tải dữ liệu VĐV từ API.');
+        setBowlerData([]);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchBowlerData();
   }, []);
 
-  let filteredBowlers = bowlerData.filter((e) => !e.IsDelete);
+  // --- LOGIC LỌC VÀ TÌM KIẾM HOÀN CHỈNH ---
+  let filteredBowlers = bowlerData.filter((e) => !e.isDelete); // Lọc VĐV chưa bị xóa
 
-  // Lọc theo Teams được truyền từ props
-  // if (props.displayTeams && props.displayTeams.length > 0) {
-  //   filteredBowlers = filteredBowlers.filter((b) =>
-  //     props.displayTeams.includes(b.team?.teamName || ''),
-  //   );
-  // }
-
-  // Lọc theo ô tìm kiếm (search input)
   if (search) {
     const lowerCaseSearch = search.toLowerCase();
     filteredBowlers = filteredBowlers.filter(
-      (b) =>
-        b.bowlerLastName.toLowerCase().includes(lowerCaseSearch) ||
-        b.team?.teamName.toLowerCase().includes(lowerCaseSearch) ||
-        b.bowlerFirstName.toLowerCase().includes(lowerCaseSearch),
+      (bowler) =>
+        bowler.bowlerFirstName.toLowerCase().includes(lowerCaseSearch) ||
+        bowler.bowlerLastName.toLowerCase().includes(lowerCaseSearch) ||
+        bowler.team.teamName.toLowerCase().includes(lowerCaseSearch) ||
+        bowler.bowlerCity.toLowerCase().includes(lowerCaseSearch),
     );
   }
 
   return (
     <div className="p-4 sm:p-8 bg-gray-50 min-h-screen font-inter">
-      <div className="max-w-7xl mx-auto">
-        {/* CONTROL PANEL (Search, Create, Teams) */}
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 space-y-4 sm:space-y-0">
-          {/* Create Button */}
+      {/* Control Panel */}
+      <div className="mb-6 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+        {/* Search Input */}
+        <input
+          type="text"
+          placeholder="Tìm kiếm theo Tên hoặc Đội..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="p-3 border border-gray-300 rounded-lg shadow-sm w-full sm:w-80 focus:ring-indigo-500 focus:border-indigo-500"
+        />
+
+        <div className="flex space-x-3">
           <button
-            type="button"
             onClick={() => handleCreate('create')}
-            className="w-full sm:w-auto bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+            className="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 transition duration-300"
           >
-            + Add New Bowler
+            + Tạo VĐV Mới
           </button>
-
-          {/* Search Input */}
-          <div className="w-full sm:w-96">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search Name or Team..."
-              className="block w-full p-2.5 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-
-          {/* Teams Button */}
           <button
-            type="button"
-            onClick={() => handleCreate('create-team')}
-            className="w-full sm:w-auto bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+            onClick={() => handleCreate('view-teams')}
+            className="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition duration-300"
           >
-            Create Teams
+            Quản lý Teams
           </button>
         </div>
+      </div>
 
-        {/* BOWLER DATA TABLE */}
+      {error && (
+        <div className="text-red-600 p-4 mb-4 bg-red-100 border border-red-400 rounded-lg text-center font-semibold">
+          {error}
+        </div>
+      )}
+
+      {/* Hiển thị Loading */}
+      {isLoading && !error ? (
+        <div className="text-center p-10 text-xl font-semibold text-indigo-600">
+          Đang tải danh sách vận động viên...
+        </div>
+      ) : (
+        // Datat
         <div className="overflow-x-auto shadow-xl rounded-xl">
           <table className="min-w-full divide-y divide-gray-200 bg-white">
-            {/* Table Header (<thead>) */}
             <thead className="bg-gray-800">
               <tr>
-                {/* Áp dụng padding và text color cho TH */}
                 <th
                   scope="col"
                   className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider rounded-tl-xl text-center"
@@ -150,8 +148,7 @@ function BowlersTable(props: any) {
                 </th>
               </tr>
             </thead>
-
-            {/* Table Body (<tbody>) */}
+            {/* ... Table Body Mapping ... */}
             <tbody className="divide-y divide-gray-200">
               {filteredBowlers.length === 0 ? (
                 <tr>
@@ -159,19 +156,17 @@ function BowlersTable(props: any) {
                     colSpan={7}
                     className="px-6 py-4 text-center text-sm text-gray-500"
                   >
-                    No bowler data available.
+                    {search
+                      ? `Không tìm thấy VĐV nào với từ khóa "${search}".`
+                      : 'Không có dữ liệu vận động viên (hoặc server chưa chạy).'}
                   </td>
                 </tr>
               ) : (
                 filteredBowlers.map((b) => (
-                  // Lớp TR đã được sửa:
-                  // 1. even:bg-gray-50 tạo kiểu xen kẽ (Zebra Striping)
-                  // 2. hover:bg-indigo-50/70: Hiệu ứng hover mượt mà hơn và ít xung đột hơn
                   <tr
                     key={b.bowlerId}
                     className="even:bg-gray-50 hover:bg-indigo-50/70 transition duration-150 ease-in-out"
                   >
-                    {/* Áp dụng padding, text size, và whitespace cho TD */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {b.bowlerLastName}
                     </td>
@@ -186,17 +181,13 @@ function BowlersTable(props: any) {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {b.bowlerPhoneNumber}
                     </td>
-                    {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-yellow-600">
-                    </td> */}
-
-                    {/* Edit Button */}
                     <td className="px-2 py-4 whitespace-nowrap text-center text-sm font-medium">
                       <button
                         type="button"
                         onClick={() => handleTeam(b.teamId)}
                         className="text-yellow-600 hover:text-indigo-900 transition duration-150"
                       >
-                        {b?.team?.teamName}
+                        {b?.team?.teamName || 'N/A'}
                       </button>
                     </td>
                     <td className="px-2 py-4 whitespace-nowrap text-center text-sm font-medium">
@@ -208,8 +199,6 @@ function BowlersTable(props: any) {
                         Edit
                       </button>
                     </td>
-
-                    {/* Delete Button */}
                     <td className="px-2 py-4 whitespace-nowrap text-center text-sm font-medium">
                       <button
                         type="button"
@@ -225,7 +214,7 @@ function BowlersTable(props: any) {
             </tbody>
           </table>
         </div>
-      </div>
+      )}
     </div>
   );
 }

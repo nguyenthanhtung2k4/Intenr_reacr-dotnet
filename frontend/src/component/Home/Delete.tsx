@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-
-const API_URL = 'http://localhost:5231/api/BowlingLeague';
+import {
+  softDeleteBowler,
+  fetchBowlerDetails,
+} from '../../services/api.services';
 
 function Delete() {
   const { id } = useParams<{ id: string }>();
@@ -10,15 +11,12 @@ function Delete() {
   const [statusMessage, setStatusMessage] = useState('');
   const [bowlerName, setBowlerName] = useState('Vận động viên này');
 
-  // Hàm lấy thông tin bowler để hiển thị tên trước khi xóa
   useEffect(() => {
     if (id) {
-      // API của bạn có thể là: /api/BowlingLeague/{id}
-      axios
-        .get(`${API_URL}/${id}`)
+      fetchBowlerDetails(id)
         .then((response) => {
           setBowlerName(
-            `${response.data.bowlerFirstName} ${response.data.bowlerLastName}`,
+            `${response.bowlerFirstName} ${response.bowlerLastName}`,
           );
         })
         .catch(() => {
@@ -36,18 +34,8 @@ function Delete() {
     setStatusMessage(`Đang xóa mềm ${bowlerName}...`);
 
     try {
-      const payload = {
-        isDeleted: true,
-      };
+      await softDeleteBowler(id);
 
-      // Gửi yêu cầu PATCH
-      await axios.patch(`${API_URL}/${id}`, payload, {
-        headers: {
-          'Content-Type': 'application/json-patch+json',
-        },
-      });
-
-      // Xử lý thành công
       setStatusMessage(
         `✅ Xóa mềm ${bowlerName} thành công! Đang chuyển hướng...`,
       );
@@ -78,7 +66,6 @@ function Delete() {
       <p>
         Bạn có chắc chắn muốn xóa mềm **{bowlerName}** (ID: {id}) không?
       </p>
-      {/* <p style={{ color: 'gray' }}>Thao tác này sẽ đặt IsDeleted = TRUE.</p> */}
 
       <button
         onClick={handleDelete}

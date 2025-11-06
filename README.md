@@ -13,3 +13,34 @@ In order to run this project, you will need .NET installed on your computer as w
 
 ## Disclaimer
 This is just an example app for the development side of things only. This is not suitable for production environments as is.
+
+## folder 
+```  bash 
+/Intenr_reacr-dotnet
+├── .env                  # <--- FILE MỚI: Chứa Base URL
+├── node_modules
+├── public
+├── src
+│   ├── assets
+│   ├── components        # Chứa các component UI nhỏ, có thể tái sử dụng
+│   ├── component         # (Giữ theo cấu trúc cũ của anh, nhưng nên đổi tên thành 'pages' hoặc 'views')
+│   │   ├── Home          # Chứa các màn hình chính (Views/Pages)
+│   │   │   ├── App.tsx   # (Đã di chuyển về thư mục gốc src)
+│   │   │   ├── BowlersTable.tsx  # Danh sách chính (Home View)
+│   │   │   ├── BowlerForm.tsx    # <--- FILE MỚI: Gộp Create & Edit
+│   │   │   ├── createTeams.tsx   # Tạo Teams
+│   │   │   ├── Delete.tsx        # <--- SỬA TÊN TỪ Detele.tsx
+│   │   │   ├── team.tsx          # Chi tiết Team (Danh sách Bowlers theo team)
+│   │   │   └── viewCreate.tsx    # View Teams
+│   │   └── Header.tsx
+│   ├── services          # <--- FOLDER MỚI: Logic giao tiếp API
+│   │   └── api.services.tsx    # <--- FILE MỚI: Centralized API
+│   ├── types             # Chứa các TypeScript Interfaces
+│   │   ├── Bowler.ts
+│   │   ├── Teams.ts
+│   │   └── ...
+│   ├── App.css
+│   ├── index.css
+│   └── main.tsx / index.tsx
+└── package.json
+```
