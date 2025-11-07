@@ -17,6 +17,7 @@ namespace Backend.Controllers
         {
             var bowlingLeagueData = _bowlingLeagueRepository.Bowlers
             .Where((e) => e.IsDelete != true)
+            .OrderByDescending((e) => e.BowlerId)
             .ToArray();
 
             return bowlingLeagueData;
@@ -130,7 +131,8 @@ namespace Backend.Controllers
                 {
                     return NotFound("Không tìm thấy danh sách đội.");
                 }
-                return Ok(teams);
+                var DES = teams.OrderByDescending(t => t.TeamId).ToList();
+                return Ok(DES);
             }
             catch (System.Exception ex)
             {

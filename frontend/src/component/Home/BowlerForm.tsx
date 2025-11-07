@@ -167,15 +167,14 @@ const BowlerForm: React.FC = () => {
           required
           className="border p-2 rounded-md w-full"
         />
-
-        <input
+        {/* <input
           type="text"
           name="bowlerMiddleInit"
           value={formData.bowlerMiddleInit || ''}
           onChange={handleChange}
           placeholder="Chữ lót (Middle Init - Tùy chọn)"
           className="border p-2 rounded-md w-full"
-        />
+        /> */}
 
         <input
           type="text"
