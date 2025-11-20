@@ -28,8 +28,24 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:3000", "https://localhost:3000")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
+});
+
+// 1. Thêm dịch vụ Cache phân tán (Cần cho Session)
+builder.Services.AddDistributedMemoryCache();
+// 2. Thêm dịch vụ Session
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Session hết hạn sau 30 phút không hoạt động
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    // options.Cookie.SameSite = SameSiteMode.None;
+    // options.Cookie.SecurePolicy = CookieSecurePolicy.Always; 
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None; // Tạm thời tắt yêu cầu HTTPS trong môi trường dev
+    options.Cookie.SameSite = SameSiteMode.Lax; // Lax hoạt động tốt hơn None trên HTTP
+
 });
 
 var app = builder.Build();
@@ -43,6 +59,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowReactApp");
+app.UseSession();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

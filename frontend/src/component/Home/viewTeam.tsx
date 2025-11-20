@@ -38,6 +38,15 @@ function ViewTeams() {
     console.log('idTeam : ', idTeam);
     navigate(`/team/${idTeam}`);
   };
+  const handleTeamBowlers = (teamId: any, type: String) => {
+    const idTeam = getTeamId(teamId);
+    if (type === 'edit') {
+      navigate(`/edit-team/${idTeam}`);
+    }
+    if (type === 'delete') {
+      navigate(`/delete-team/${idTeam}`);
+    }
+  };
 
   return (
     <div className="p-4 sm:p-8 bg-gray-50 min-h-screen font-inter">
@@ -74,17 +83,23 @@ function ViewTeams() {
           <table className="min-w-full divide-y divide-gray-200 bg-white">
             <thead className="bg-gray-800">
               <tr>
-                <th
+                {/* <th
                   scope="col"
                   className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider rounded-tl-xl text-center"
                 >
                   ID Đội
+                </th> */}
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider"
+                >
+                  Tên Đội
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-xs font-medium text-white uppercase tracking-wider text-left"
+                  className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider "
                 >
-                  Tên Đội
+                  Xem chi tiết
                 </th>
                 <th
                   scope="col"
@@ -110,20 +125,38 @@ function ViewTeams() {
                     key={team.TeamId}
                     className="even:bg-gray-50 hover:bg-indigo-50/70 transition duration-150 ease-in-out"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">
+                    {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">
                       {team.TeamId}
-                    </td>
+                    </td> */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {team.teamName}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <button
+                        type="button"
+                        id={`${team.TeamId}`}
+                        onClick={() => handleViewBowlers(team)}
+                        className="text-indigo-600 hover:text-nowrap-900 transition duration-150"
+                      >
+                        Xem VĐV
+                      </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                       <button
                         type="button"
                         id={`${team.TeamId}`}
-                        onClick={() => handleViewBowlers(team)}
-                        className="text-indigo-600 hover:text-indigo-900 transition duration-150"
+                        onClick={() => handleTeamBowlers(team, 'edit')}
+                        className="text-blue-600 hover:text-indigo-900 transition duration-150 pr-4"
                       >
-                        Xem VĐV
+                        Sửa
+                      </button>
+                      <button
+                        type="button"
+                        id={`${team.TeamId}`}
+                        onClick={() => handleTeamBowlers(team, 'delete')}
+                        className="text-red-600 hover:text-red-900 transition duration-150"
+                      >
+                        Xóa
                       </button>
                     </td>
                   </tr>

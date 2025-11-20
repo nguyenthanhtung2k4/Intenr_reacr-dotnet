@@ -8,12 +8,16 @@ import Delete from './component/Home/Delete';
 import BowlerForm from './component/Home/BowlerForm';
 import CreateTeam from './component/Home/createTeams';
 import ViewTeams from './component/Home/viewTeam';
+import Login from './component/account/Login';
 import Team from './component/Home/team';
+import { LogoutButton } from './component/account/Logout';
 
 function App() {
   return (
     <div className="App">
       <Header title="Tungnt" description="I am study  React HIHI :)| CRUD" />
+      <LogoutButton />
+
       <br />
       <Routes>
         <Route
@@ -22,6 +26,8 @@ function App() {
         />
 
         <Route path="/bowler/:id" element={<BowlerForm />} />
+
+        <Route path="/login" element={<Login />} />
 
         <Route path="/create-team" element={<CreateTeam />} />
         <Route path="/view-teams" element={<ViewTeams />} />

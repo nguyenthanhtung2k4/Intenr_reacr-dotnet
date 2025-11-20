@@ -1,6 +1,12 @@
+// service/api.service.tsx
 import axios from 'axios';
 import { Bowler } from '../types/Bowler';
 import { Team } from '../types/Team';
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
 
 const URL_API = process.env.REACT_APP_API_URL;
 const BOWLING_API_URL = `${URL_API}/BowlingLeague`;
@@ -112,5 +118,48 @@ export const createTeam = async (teamData: {
     return response.data;
   } catch (error) {
     handleApiError(error, 'createTeam');
+  }
+};
+
+const api = axios.create({
+  baseURL: BOWLING_API_URL,
+  // DÒNG NÀY RẤT QUAN TRỌNG: Báo cho trình duyệt gửi cookie session
+  withCredentials: true,
+});
+
+// 8. Đăng nhập (Sử dụng POST)
+// ENDPOINT: /api/BowlingLeague/login
+export const loginAccount = async (
+  credentials: LoginCredentials,
+): Promise<void> => {
+  try {
+    // LƯU Ý: Controller C# cần đổi từ [HttpGet("login")] sang [HttpPost("login")]
+    await api.post(`${BOWLING_API_URL}/login`, credentials);
+  } catch (error) {
+    throw handleApiError(error, 'loginAccount');
+  }
+};
+
+// 9. Kiểm tra Session (Is Authenticated)
+// ENDPOINT: /api/BowlingLeague/is-authenticated
+export const checkAuthStatus = async (): Promise<{
+  isAuthenticated: boolean;
+}> => {
+  try {
+    const response = await api.get(`${BOWLING_API_URL}/is-authenticated`);
+    return response.data;
+  } catch (error) {
+    return { isAuthenticated: false };
+  }
+};
+
+// 10. Đăng xuất (Sử dụng POST)
+// ENDPOINT: /api/BowlingLeague/Logout
+export const logoutAccount = async (): Promise<void> => {
+  try {
+    // LƯU Ý: Controller C# cần đổi từ [HttpGet("Logout")] sang [HttpPost("Logout")]
+    await api.post(`${BOWLING_API_URL}/Logout`);
+  } catch (error) {
+    console.warn('Logout API warning (might be already logged out):', error);
   }
 };

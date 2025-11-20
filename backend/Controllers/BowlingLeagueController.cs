@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Backend.Data;
 using Backend.Dtos;
+using Backend.Data.DTO;
+using System.Linq.Expressions;
 
 namespace Backend.Controllers
 {
@@ -180,7 +182,7 @@ namespace Backend.Controllers
                     return BadRequest(ModelState);
                 }
                 var data = _bowlingLeagueRepository.Bowlers
-                .Where((e) => e.TeamId == teamId && e.IsDelete!= true)
+                .Where((e) => e.TeamId == teamId && e.IsDelete != true)
                 .ToList();
 
                 if (data == null || data.Count == 0)
@@ -196,5 +198,49 @@ namespace Backend.Controllers
                 return StatusCode(500, $" Loi  sercver khi tai  cau thu: {ex}");
             }
         }
+
+        private const string UserIdKey = "_UserId";
+        [HttpPost("login")]
+        public IActionResult Login([FromBody] loginDto loginDto)
+        {
+            try
+            {
+                int? UserId = null;
+                if (loginDto.Email == "t@gmail.com" && loginDto.Password == "tungtung")
+                {
+                    UserId = 1;
+                }
+                if (UserId == null)
+                {
+                    return Unauthorized(new { message = "Email hoặc mật khẩu không đúng" });
+
+                }
+                HttpContext.Session.SetInt32(UserIdKey, UserId.Value);
+                return Ok(new { message = "Dang nhap  thanh  cong! " });
+
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Loi server " + ex.Message });
+            }
+        }
+
+        [HttpPost("Logout")]
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+            return Ok(UserIdKey);
+        }
+
+        // Endpoint để React kiểm tra trạng thái đăng nhập ban đầu
+        [HttpGet("is-authenticated")]
+        public IActionResult IsAuthenticated()
+        {
+            int? userId = HttpContext.Session.GetInt32(UserIdKey);
+
+            return Ok(new { isAuthenticated = userId.HasValue });
+        }
+
     }
 }
