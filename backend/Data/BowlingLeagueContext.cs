@@ -14,8 +14,8 @@ public partial class BowlingLeagueContext : DbContext
         : base(options)
     {
     }
-
     public virtual DbSet<Bowler> Bowlers { get; set; }
+    public virtual DbSet<Accounts> Accounts { get; set; }
 
     public virtual DbSet<BowlerScore> Scores { get; set; }
 
@@ -61,6 +61,31 @@ public partial class BowlingLeagueContext : DbContext
                 .HasColumnType("INT")
                 .HasColumnName("TeamID");
         });
+
+        modelBuilder.Entity<Accounts>(entity =>
+            {
+                entity.ToTable("Accounts");
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                      .HasColumnName("Id")
+                      .ValueGeneratedOnAdd();
+
+                entity.Property(e => e.Email)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.Property(e => e.Password)
+                      .IsRequired()
+                      .HasMaxLength(200);
+
+                entity.Property(e => e.Role)
+                      .IsRequired()
+                      .HasMaxLength(50);
+
+                entity.Property(e => e.IsDelete)
+                      .HasDefaultValue(false);
+            });
 
         modelBuilder.Entity<BowlerScore>(entity =>
         {

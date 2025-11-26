@@ -9,9 +9,11 @@ import BowlerForm from './component/Home/BowlerForm';
 import CreateTeam from './component/Home/createTeams';
 import ViewTeams from './component/Home/viewTeam';
 import Login from './component/account/Login';
+import Register from './component/account/register';
 import Team from './component/Home/team';
 import { LogoutButton } from './component/account/Logout';
 import { useAuth } from './context/AuthContext';
+import Accounts from './component/account/accounts';
 
 function App() {
   const AuthConnext = useAuth();
@@ -39,6 +41,11 @@ function App() {
 
             <Route path="/login" element={<Login />} />
 
+            {/* account */}
+            <Route path="/create-account" element={<Register />} />
+            <Route path="/edit-account/:id" element={<Register />} />
+            <Route path="/view-accounts" element={<Accounts />} />
+            {/*Teams */}
             <Route path="/create-team" element={<CreateTeam />} />
             <Route path="/view-teams" element={<ViewTeams />} />
             <Route path="/team/:id" element={<Team />} />

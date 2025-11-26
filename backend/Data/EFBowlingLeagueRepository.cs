@@ -16,6 +16,7 @@ namespace Backend.Data
         }
 
         public IEnumerable<Bowler> Bowlers => _bowlingContext.Bowlers.Include(x => x.Team).ToList();
+        public IEnumerable<Accounts> Accounts => _bowlingContext.Accounts;
 
         public IEnumerable<BowlerScore> Scores => _bowlingContext.Scores;
 
@@ -45,6 +46,34 @@ namespace Backend.Data
             {
                 throw new Exception($"Lỗi cập nhật Bowler: {dbEx.InnerException?.Message ?? dbEx.Message}");
             }
+        }
+        public void UpdateAccounts(Accounts accounts)
+        {
+            try
+            {
+                _bowlingContext.Accounts.Update(accounts);
+                _bowlingContext.SaveChanges();
+            }
+            catch (DbUpdateException dbEx)
+            {
+                throw new Exception($"Lỗi cập nhật Bowler: {dbEx.InnerException?.Message ?? dbEx.Message}");
+            }
+        }
+
+        public void CreateAcounts(Accounts accounts)
+        {
+            try
+            {
+                
+                _bowlingContext.Accounts.Add(accounts);
+                _bowlingContext.SaveChanges();
+            }
+            catch (DbUpdateException dbEx)
+            {
+                throw new Exception($"Lỗi lưu Accounts: {dbEx.InnerException?.Message ?? dbEx.Message}");
+            }
+
+
         }
 
         // 🔹 Create
@@ -76,13 +105,13 @@ namespace Backend.Data
                 throw new Exception($"Lỗi lưu Bowler: {dbEx.InnerException?.Message ?? dbEx.Message}");
             }
         }
-       
-       
-       public void CreateTeam(Team team)
+
+
+        public void CreateTeam(Team team)
         {
             try
             {
-                
+
                 _bowlingContext.Teams.Add(team);
                 _bowlingContext.SaveChanges();
             }

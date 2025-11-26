@@ -2,6 +2,7 @@
 import axios from 'axios';
 import { Bowler } from '../types/Bowler';
 import { Team } from '../types/Team';
+import { Acc } from '../types/Accounts';
 
 export interface LoginCredentials {
   email: string;
@@ -135,6 +136,39 @@ export const createTeam = async (teamData: {
     return response.data;
   } catch (error) {
     throw handleApiError(error, 'createTeam');
+  }
+};
+
+// 7.1. Thêm accounts
+export const createAccounts = async (accountData: {
+  Email: string;
+  Password: string;
+  Role: string | null;
+}) => {
+  try {
+    const response = await api.post(`/accounts`, accountData);
+    return response.data;
+  } catch (error) {
+    throw handleApiError(error, 'accounts');
+  }
+};
+
+// 7.2 Lấy danh sách Accounts
+export const fetchAccounts = async (): Promise<Acc[]> => {
+  try {
+    const response = await api.get(`/accounts`);
+    return response.data || [];
+  } catch (error) {
+    throw handleApiError(error, 'fetchAccounts');
+  }
+};
+// 7.3 Lấy danh sách Accounts
+export const Details = async (id: string): Promise<Acc[]> => {
+  try {
+    const response = await api.get(`/accounts/${id}`);
+    return response.data || [];
+  } catch (error) {
+    throw handleApiError(error, 'fetchAccountsDetails');
   }
 };
 

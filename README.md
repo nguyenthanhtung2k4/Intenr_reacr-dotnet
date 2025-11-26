@@ -14,9 +14,9 @@ In order to run this project, you will need .NET installed on your computer as w
 ## Disclaimer
 This is just an example app for the development side of things only. This is not suitable for production environments as is.
 
-## folder 
+## Folder 
 ```  bash 
-/Intenr_reacr-dotnet
+/Intenr_react-dotnet
 ├── .env                  # <--- FILE MỚI: Chứa Base URL
 ├── node_modules
 ├── public

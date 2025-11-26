@@ -2,6 +2,7 @@
     public interface IBowlingLeagueRepository
     {
         IEnumerable<Bowler> Bowlers { get; }
+        IEnumerable<Accounts> Accounts { get; }
 
         IEnumerable<BowlerScore> Scores { get; }
 
@@ -21,6 +22,8 @@
         IEnumerable<ZtblWeek> ZtblWeek { get; }
         
         void UpdateBowler(Bowler bowler);
+        void UpdateAccounts(Accounts accounts);
+        void CreateAcounts(Accounts accounts);
         void CreateBowler(Bowler bowler);
         void CreateTeam(Team team);
     }

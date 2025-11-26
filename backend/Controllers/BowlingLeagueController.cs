@@ -6,6 +6,7 @@ using Backend.Data.DTO;
 using System.Linq.Expressions;
 using Backend.Data.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.OpenApi.Validations.Rules;
 
 namespace Backend.Controllers
 {
@@ -18,7 +19,7 @@ namespace Backend.Controllers
         public BowlingLeagueController(IBowlingLeagueRepository temp, ITokenService token)
         {
             _bowlingLeagueRepository = temp;
-            _tokenService = token ;
+            _tokenService = token;
         }
 
         [HttpGet]
@@ -34,7 +35,7 @@ namespace Backend.Controllers
         }
 
         [HttpGet("{id}")]
-        [AllowAnonymous] 
+        [AllowAnonymous]
 
         public ActionResult<Bowler> Get(int id)
         {
@@ -49,6 +50,7 @@ namespace Backend.Controllers
 
             return Ok(bowler);
         }
+
 
         [HttpPatch("{id}")]
         [Authorize]
@@ -103,7 +105,6 @@ namespace Backend.Controllers
 
         [HttpPost]
         [Authorize]
-
         public IActionResult Post([FromBody] BowlerPostDto newBowler)
         {
             if (!ModelState.IsValid)
@@ -218,6 +219,8 @@ namespace Backend.Controllers
             }
         }
 
+        // ///////////////////////////////////////////////////////////
+
         [HttpPost("login")]
         [AllowAnonymous] // Login phải cho phép truy cập công khai
         public IActionResult Login([FromBody] loginDto loginDto)
@@ -228,6 +231,16 @@ namespace Backend.Controllers
                 if (loginDto.Email == "t@gmail.com" && loginDto.Password == "tungtung")
                 {
                     UserId = 1;
+                }
+                else
+                {
+                    var acc = _bowlingLeagueRepository.Accounts.FirstOrDefault(e => e.Email == loginDto.Email && !e.IsDelete);
+
+                    if (acc != null && acc.Password != loginDto.Password)
+                    {
+                        return Unauthorized(new { message = "Email hoặc mật khẩu không đúng! " });
+                    }
+
                 }
                 if (UserId == null)
                 {
@@ -252,6 +265,108 @@ namespace Backend.Controllers
             }
         }
 
+        [HttpGet("accounts")]
+        [Authorize]
+        public IActionResult Accounts()
+        {
+            try
+            {
+                var acc = _bowlingLeagueRepository.Accounts
+                .Where(e => !e.IsDelete)
+                .OrderByDescending(e => e.Id)
+                .ToList();
+
+                return Ok(acc);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Loi server! ", ex });
+            }
+        }
+
+
+        [HttpPost("accounts")]
+        [Authorize]
+        public IActionResult AddAccounts([FromBody] AccountsDto accountsDto)
+        {
+
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+
+                }
+                var check = _bowlingLeagueRepository.Accounts
+                .Any(a => a.Email == accountsDto.Email);
+                if (check)
+                {
+                    return Conflict(new { message = "Email da ton tai ! " });
+
+                }
+                var accounts = new Accounts
+                {
+                    Email = accountsDto.Email,
+                    Password = accountsDto.Password,
+                    Role = accountsDto.Role,
+                    IsDelete = accountsDto.IsDelete
+                };
+
+                _bowlingLeagueRepository.CreateAcounts(accounts);
+
+                return Ok(new { message = "Da them tai  khoan thanh cong" });
+
+
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized(new { message = "Loi  server ", ex });
+            }
+
+        }
+
+
+        [HttpPost("accounts/{id}")]
+        [Authorize]
+        public IActionResult AddAccounts(int id, [FromBody] AccountsDto accountsDto)
+        {
+
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+
+                }
+                var check = _bowlingLeagueRepository.Accounts
+                .Any(a => a.Email == accountsDto.Email);
+                if (check)
+                {
+                    return Conflict(new { message = "Email da ton tai ! " });
+
+                }
+                var acc = _bowlingLeagueRepository.Accounts
+                .FirstOrDefault(e => e.Id == id);
+
+                if (acc == null) { return NotFound(); }
+
+                if (accountsDto.Email != null) { acc.Email = accountsDto.Email; }
+                if (accountsDto.Password != null) { acc.Password = accountsDto.Password; }
+                if (accountsDto.Role != null) { acc.Role = accountsDto.Role; }
+                /// check  isDelete true la  xoa di
+                if (accountsDto.IsDelete == true) { acc.IsDelete = accountsDto.IsDelete; }
+
+                _bowlingLeagueRepository.UpdateAccounts(acc);
+
+                return Ok(acc);
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized(new { message = "Loi  server ", ex });
+            }
+
+        }
+
         [HttpPost("Logout")]
         [AllowAnonymous] // Có thể để [Authorize] hoặc [AllowAnonymous] tùy thuộc vào thiết kế. Để [AllowAnonymous] cho đơn giản.
         public IActionResult Logout()
@@ -260,13 +375,13 @@ namespace Backend.Controllers
         }
 
         [HttpGet("is-authenticated")]
-        [Authorize] 
+        [Authorize]
         public IActionResult IsAuthenticated()
         {
             // Lấy ID từ Claims (Payload của JWT)
-           var userIdClaim = User.FindFirst("Id"); 
-            return Ok(new 
-            { 
+            var userIdClaim = User.FindFirst("Id");
+            return Ok(new
+            {
                 isAuthenticated = true,
                 userId = userIdClaim?.Value
             });
