@@ -246,23 +246,23 @@ export const fetchAccounts = async (): Promise<Acc[]> => {
 export const fetchAccountUpdate = async (
   id: string,
   dataUpdate: {
-    Email: string;
-    Password: string;
-    Role: string;
+    Email?: string;
+    Password?: string;
+    Role?: string;
   },
 ): Promise<Acc[]> => {
   try {
-    const response = await api.post(`/BowlingLeague/accounts/${id}`, dataUpdate);
-    return response.data || [];
+    const response = await api.put(`/BowlingLeague/accounts/${id}`, dataUpdate);
+    return response.data;
   } catch (error) {
-    throw handleApiError(error, 'fetchAccountsDetails');
+    throw handleApiError(error, 'fetchAccountUpdate');
   }
 };
 // 7.4 Xóa Accounts
 export const fetchdeleteAccount = async (id: number) => {
   try {
     const dataDelete = { IsDelete: true };
-    const response = await api.post(`/BowlingLeague/accounts/${id}`, dataDelete);
+    const response = await api.put(`/BowlingLeague/accounts/${id}`, dataDelete);
     return response.data;
   } catch (error) {
     throw handleApiError(error, 'deleteAccount');
@@ -272,7 +272,7 @@ export const fetchdeleteAccount = async (id: number) => {
 // 7.4 Lấy accounts  chi  tiết
 export const fetchAccountsDetails = async (id: string): Promise<Acc> => {
   try {
-    const response = await api.get(`/BowlingLeague/accounts/details/${id}`);
+    const response = await api.get(`/BowlingLeague/accounts/${id}`);
     return response.data || [];
   } catch (error) {
     throw handleApiError(error, 'fetchAccountsDetails');

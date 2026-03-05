@@ -77,8 +77,7 @@ public partial class BowlingLeagueContext : DbContext
 
                   entity.Property(e => e.DeletedAt);
 
-                  entity.Property(e => e.IsDelete)
-                  .HasDefaultValue(false);
+                  entity.Property(e => e.IsDelete);
             });
 
             modelBuilder.Entity<Accounts>(entity =>
@@ -118,8 +117,7 @@ public partial class BowlingLeagueContext : DbContext
 
                       entity.Property(e => e.DeletedAt);
 
-                      entity.Property(e => e.IsDelete)
-                        .HasDefaultValue(false);
+                      entity.Property(e => e.IsDelete);
                 });
 
             modelBuilder.Entity<BowlerScore>(entity =>
@@ -163,8 +161,7 @@ public partial class BowlingLeagueContext : DbContext
 
                   entity.Property(e => e.DeletedAt);
 
-                  entity.Property(e => e.IsDelete)
-                  .HasDefaultValue(false);
+                  entity.Property(e => e.IsDelete);
 
                   entity.HasOne(d => d.Bowler).WithMany(p => p.BowlerScores)
                   .HasForeignKey(d => d.BowlerId)
@@ -208,8 +205,7 @@ public partial class BowlingLeagueContext : DbContext
 
                   entity.Property(e => e.DeletedAt);
 
-                  entity.Property(e => e.IsDelete)
-                  .HasDefaultValue(false);
+                  entity.Property(e => e.IsDelete);
 
                   entity.HasOne(d => d.Match).WithMany(p => p.MatchGames)
                   .HasForeignKey(d => d.MatchId)
@@ -248,8 +244,7 @@ public partial class BowlingLeagueContext : DbContext
 
                   entity.Property(e => e.DeletedAt);
 
-                  entity.Property(e => e.IsDelete)
-                  .HasDefaultValue(false);
+                  entity.Property(e => e.IsDelete);
             });
 
             modelBuilder.Entity<Tournament>(entity =>
@@ -280,8 +275,7 @@ public partial class BowlingLeagueContext : DbContext
 
                   entity.Property(e => e.DeletedAt);
 
-                  entity.Property(e => e.IsDelete)
-                  .HasDefaultValue(false);
+                  entity.Property(e => e.IsDelete);
             });
 
             modelBuilder.Entity<TourneyMatch>(entity =>
@@ -331,8 +325,7 @@ public partial class BowlingLeagueContext : DbContext
 
                   entity.Property(e => e.DeletedAt);
 
-                  entity.Property(e => e.IsDelete)
-                  .HasDefaultValue(false);
+                  entity.Property(e => e.IsDelete);
 
                   entity.HasOne(d => d.Tourney).WithMany(p => p.TourneyMatches).HasForeignKey(d => d.TourneyId);
             });
