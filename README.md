@@ -17,31 +17,111 @@ This is just an example app for the development side of things only. This is not
 ## Folder 
 ```  bash 
 /Intenr_react-dotnet
+=================== Back-End ===================
+
+backend/
+├─ Controllers/
+├─ Models/
+│  ├─ Entities/
+│  └─ Dtos/
+├─ Data/
+│  ├─ Contexts/
+│  └─ Repositories/
+├─ Services/
+│  ├─ Interfaces/
+│  └─ Implementations/
+├─ Middleware/
+├─ Migrations/
+├─ Program.cs
+└─ appsettings.json
+
+
+=================== Fornt-End ===================
 ├── .env                  # <--- FILE MỚI: Chứa Base URL
 ├── node_modules
 ├── public
 ├── src
 │   ├── assets
-│   ├── components        # Chứa các component UI nhỏ, có thể tái sử dụng
-│   ├── component         # (Giữ theo cấu trúc cũ của anh, nhưng nên đổi tên thành 'pages' hoặc 'views')
-│   │   ├── Home          # Chứa các màn hình chính (Views/Pages)
-│   │   │   ├── App.tsx   # (Đã di chuyển về thư mục gốc src)
-│   │   │   ├── BowlersTable.tsx  # Danh sách chính (Home View)
-│   │   │   ├── BowlerForm.tsx    # <--- FILE MỚI: Gộp Create & Edit
-│   │   │   ├── createTeams.tsx   # Tạo Teams
-│   │   │   ├── Delete.tsx        # <--- SỬA TÊN TỪ Detele.tsx
-│   │   │   ├── team.tsx          # Chi tiết Team (Danh sách Bowlers theo team)
-│   │   │   └── viewCreate.tsx    # View Teams
-│   │   └── Header.tsx
-│   ├── services          # <--- FOLDER MỚI: Logic giao tiếp API
-│   │   └── api.services.tsx    # <--- FILE MỚI: Centralized API
-│   ├── types             # Chứa các TypeScript Interfaces
-│   │   ├── Bowler.ts
-│   │   ├── Teams.ts
-│   │   └── ...
-│   ├── App.css
+│   ├── App.test.tsx
+│   ├── App.tsx
+│   ├── BLE-logo.png
 │   ├── index.css
-│   └── main.tsx / index.tsx
+│   ├── index.tsx
+│   ├── logo.svg
+│   ├── react-app-env.d.ts
+│   ├── reportWebVitals.ts
+│   ├── setupTests.ts
+│   ├── app
+│   │   ├── AppShell.tsx
+│   │   ├── providers.tsx
+│   │   └── router.tsx
+│   ├── context
+│   │   ├── AuthContext.tsx
+│   │   └── ToastContext.tsx
+│   ├── core
+│   │   └── api
+│   │       ├── httpClient.ts
+│   │       └── index.ts
+│   ├── modules
+│   │   ├── accounts
+│   │   │   ├── api/accountsApi.ts
+│   │   │   ├── hooks
+│   │   │   └── pages
+│   │   │       ├── AccountDetailPage.tsx
+│   │   │       ├── AccountFormPage.tsx
+│   │   │       └── AccountListPage.tsx
+│   │   ├── auth
+│   │   │   ├── api/authApi.ts
+│   │   │   └── pages
+│   │   │       ├── LoginPage.tsx
+│   │   │       └── LogoutPage.tsx
+│   │   ├── bowlers
+│   │   │   ├── api/bowlersApi.ts
+│   │   │   ├── hooks
+│   │   │   └── pages
+│   │   │       ├── BowlerFormPage.tsx
+│   │   │       └── BowlerListPage.tsx
+│   │   ├── league
+│   │   │   ├── api/leagueApi.ts
+│   │   │   ├── components
+│   │   │   │   ├── MatchResultModal.tsx
+│   │   │   │   └── ScoreEntryModal.tsx
+│   │   │   ├── hooks
+│   │   │   └── pages
+│   │   │       ├── LivePage.tsx
+│   │   │       ├── MatchListPage.tsx
+│   │   │       ├── StandingsPage.tsx
+│   │   │       ├── TournamentDetailPage.tsx
+│   │   │       └── TournamentListPage.tsx
+│   │   └── teams
+│   │       ├── api/teamsApi.ts
+│   │       ├── hooks
+│   │       └── pages
+│   │           ├── TeamDetailPage.tsx
+│   │           └── TeamListPage.tsx
+│   ├── shared
+│   │   ├── constants
+│   │   ├── hooks
+│   │   ├── layout
+│   │   ├── Footer.tsx
+│   │   └── Header.tsx
+│   │   └── ui
+│   │       └── Toast.tsx
+│   ├── types
+│   │   ├── Accounts.ts
+│   │   ├── Bowler.ts
+│   │   ├── Match.ts
+│   │   ├── Standing.ts
+│   │   ├── Team.ts
+│   │   └── Tournament.ts
+│   └── _deprecated
+│   ├── App.css
+│   ├── README.md
+│   ├── component/Home
+│   │   ├── Delete.tsx
+│   │   └── style.css
+│   └── modules/teams
+│       └── TeamCreatePage.tsx
 └── package.json
 ```
 
