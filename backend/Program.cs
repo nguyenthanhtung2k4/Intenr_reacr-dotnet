@@ -1,17 +1,54 @@
-using Microsoft.EntityFrameworkCore;
-using Backend.Data;
-using System.Text.Json.Serialization;
+using Backend.Data.Contexts;
+using Backend.Data.Repositories;
+using Backend.Middleware;
+using Backend.Services.Implementations;
+using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Backend.Data.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSwaggerGen();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+      options.SwaggerDoc("v1", new OpenApiInfo
+      {
+            Title = "Bowling League API",
+            Version = "v1",
+            Description = "Backend API for Bowling League management"
+      });
 
-// Add controllers
+      options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+      {
+            Name = "Authorization",
+            Description = "JWT Authorization header using the Bearer scheme. Example: Bearer {token}",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT"
+      });
+
+      options.AddSecurityRequirement(new OpenApiSecurityRequirement
+      {
+            {
+                  new OpenApiSecurityScheme
+                  {
+                        Reference = new OpenApiReference
+                        {
+                              Type = ReferenceType.SecurityScheme,
+                              Id = "Bearer"
+                        }
+                  },
+                  Array.Empty<string>()
+            }
+      });
+});
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -19,13 +56,16 @@ builder.Services.AddControllers()
           options.JsonSerializerOptions.WriteIndented = true;
     });
 
-// Database + Repository
 builder.Services.AddDbContext<BowlingLeagueContext>(options =>
     options.UseSqlite(builder.Configuration["ConnectionStrings:BowlingLeagueConnection"]));
 
-// interfacer
 builder.Services.AddScoped<IBowlingLeagueRepository, EFBowlingLeagueRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IBowlingLeagueService, BowlingLeagueService>();
+builder.Services.AddScoped<ITeamsService, TeamsService>();
+builder.Services.AddScoped<IMatchesService, MatchesService>();
+builder.Services.AddScoped<IStandingsService, StandingsService>();
+builder.Services.AddScoped<ITournamentsService, TournamentsService>();
 
 builder.Services.AddCors(options =>
 {
@@ -38,11 +78,9 @@ builder.Services.AddCors(options =>
       });
 });
 
-// 2. Thêm và Cấu hình JWT Bearer Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-          // Sử dụng toán tử ?? để đảm bảo Key được cấu hình
           var key = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key not configured.");
 
           options.TokenValidationParameters = new TokenValidationParameters
@@ -51,14 +89,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-
                 ValidIssuer = builder.Configuration["Jwt:Issuer"],
                 ValidAudience = builder.Configuration["Jwt:Audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
           };
     });
 
-// Tùy chọn: Thêm chính sách mặc định để luôn yêu cầu xác thực
 builder.Services.AddAuthorizationBuilder()
     .SetFallbackPolicy(new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
@@ -68,14 +104,14 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-      // ✅ Swagger sẽ hoạt động đúng sau khi đăng ký ở trên
       app.UseSwagger();
       app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 app.UseHttpsRedirection();
 app.UseCors("AllowReactApp");
-// app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

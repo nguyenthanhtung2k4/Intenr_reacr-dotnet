@@ -1,140 +1,77 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Backend.Data;
-using Backend.Dtos;
-using Backend.Data.DTO;
-using System.Linq.Expressions;
-using Backend.Data.Services;
+using Backend.Models.Entities;
+using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
-namespace Backend.Controllers
+namespace Backend.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class TournamentsController(ITournamentsService tournamentsService) : ControllerBase
 {
-      [Route("api/[controller]")]
-      [ApiController]
-      public class TournamentsController(IBowlingLeagueRepository repository, ITokenService tokenService) : ControllerBase
+      private readonly ITournamentsService _tournamentsService = tournamentsService;
+
+      [HttpGet]
+      [AllowAnonymous]
+      public IActionResult GetTournaments()
       {
-            private readonly IBowlingLeagueRepository _repository = repository;
-            private readonly ITokenService _tokenService = tokenService;
+            var tournaments = _tournamentsService.GetTournaments();
+            return Ok(tournaments);
+      }
 
-            [HttpGet]
-            [AllowAnonymous]
-            public IActionResult GetTournaments()
+      [HttpPost]
+      [Authorize]
+      public IActionResult PostTournament([FromBody] Tournament tournament)
+      {
+            var currentUserEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var createdTournament = _tournamentsService.CreateTournament(tournament, currentUserEmail);
+
+            return CreatedAtAction(nameof(GetTournamentById), new { tournamentId = createdTournament.TourneyId }, createdTournament);
+      }
+
+      [HttpGet("{tournamentId}")]
+      [AllowAnonymous]
+      public IActionResult GetTournamentById(int tournamentId)
+      {
+            var tournament = _tournamentsService.GetTournamentById(tournamentId);
+            if (tournament == null)
             {
-                  try
-                  {
-                        var tournaments = _repository.Tournaments
-                              .Where(t => t.IsDelete != true)
-                              .ToList();
-
-                        return Ok(tournaments);
-                  }
-                  catch (Exception ex)
-                  {
-                        return StatusCode(500, $"Lỗi server khi tải danh sách giải đấu: {ex.Message}");
-                  }
+                  return NotFound(new { message = "Không tìm thấy giải đấu" });
             }
 
-            [HttpPost]
-            [Authorize]
-            public IActionResult PostTournament([FromBody] Tournament tournament)
+            return Ok(tournament);
+      }
+
+      [HttpPut("{tournamentId}")]
+      [Authorize]
+      public IActionResult PutTournament(int tournamentId, [FromBody] Tournament tournament)
+      {
+            var currentUserEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var result = _tournamentsService.UpdateTournament(tournamentId, tournament, currentUserEmail);
+
+            if (!result.IsSuccess)
             {
-                  try
+                  if (result.StatusCode == 400)
                   {
-                        tournament.CreatedBy = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-                        tournament.CreatedAt = DateTime.Now;
-                        tournament.IsDelete = false;
-
-                        _repository.CreateTournament(tournament);
-
-                        return CreatedAtAction(nameof(GetTournamentById), new { tournamentId = tournament.TourneyId }, tournament);
+                        return BadRequest(result.Message);
                   }
-                  catch (Exception ex)
+
+                  if (result.StatusCode == 404)
                   {
-                        return StatusCode(500, $"Lỗi server khi tạo giải đấu: {ex.Message}");
+                        return NotFound(result.Message);
                   }
+
+                  return StatusCode(result.StatusCode, result.Message);
             }
 
-            [HttpGet("{tournamentId}")]
-            [AllowAnonymous]
-            public IActionResult GetTournamentById(int tournamentId)
-            {
-                  try
-                  {
-                        var tournament = _repository.Tournaments.FirstOrDefault(t => t.TourneyId == tournamentId);
+            return Ok(result.Tournament);
+      }
 
-                        if (tournament == null || tournament.IsDelete == true)
-                        {
-                              return NotFound(new { message = "Không tìm thấy giải đấu" });
-                        }
-                        return Ok(tournament);
-                  }
-                  catch (Exception ex)
-                  {
-                        return StatusCode(500, $"Lỗi server khi tìm giải đấu: {ex.Message}");
-                  }
-            }
-
-            [HttpPut("{tournamentId}")]
-            [Authorize]
-            public IActionResult PutTournament(int tournamentId, [FromBody] Tournament tournament)
-            {
-                  try
-                  {
-                        if (tournamentId != tournament.TourneyId)
-                        {
-                              return BadRequest("Mã giải đấu không khớp (ID mismatch)");
-                        }
-
-                        // Lấy giải đấu hiện tại từ DB để cập nhật an toàn
-                        var existingTournament = _repository.Tournaments.FirstOrDefault(t => t.TourneyId == tournamentId);
-
-                        if (existingTournament == null)
-                        {
-                              return NotFound("Không tìm thấy giải đấu để cập nhật.");
-                        }
-
-                        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-
-                        // Xử lý Soft Delete
-                        if (tournament.IsDelete == true)
-                        {
-                              existingTournament.IsDelete = true;
-                              existingTournament.DeletedAt = DateTime.Now;
-                              existingTournament.DeletedBy = email;
-
-                              _repository.Update(existingTournament);
-                              return Ok(existingTournament);
-                        }
-
-                        existingTournament.TourneyDate = tournament.TourneyDate;
-                        existingTournament.TourneyLocation = tournament.TourneyLocation;
-
-                        existingTournament.UpdatedBy = email;
-                        existingTournament.UpdatedAt = DateTime.Now;
-
-                        _repository.Update(existingTournament);
-
-                        return Ok(existingTournament);
-                  }
-                  catch (Exception ex)
-                  {
-                        return StatusCode(500, $"Lỗi server khi cập nhật giải đấu: {ex.Message}");
-                  }
-            }
-
-            [HttpGet("tourneymatch")]
-            [AllowAnonymous]
-            public IActionResult GetTourneyMatch()
-            {
-                  try
-                  {
-                        var tournamentMatches = _repository.TourneyMatches.ToList();
-                        return Ok(tournamentMatches);
-                  }
-                  catch (Exception ex)
-                  {
-                        return StatusCode(500, $"Lỗi server khi tải trận đấu giải: {ex.Message}");
-                  }
-            }
+      [HttpGet("tourneymatch")]
+      [AllowAnonymous]
+      public IActionResult GetTourneyMatch()
+      {
+            var tournamentMatches = _tournamentsService.GetTourneyMatches();
+            return Ok(tournamentMatches);
       }
 }
