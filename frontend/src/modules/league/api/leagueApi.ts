@@ -8,10 +8,58 @@ import {
 import { StandingData } from '../../../types/Standing';
 import { TournamentData } from '../../../types/Tournament';
 
+const toNumberOrUndefined = (value: any): number | undefined => {
+  if (value === null || value === undefined || value === '') return undefined;
+  const num = Number(value);
+  return Number.isFinite(num) ? num : undefined;
+};
+
+const toNumber = (value: any, fallback = 0): number => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+};
+
+const normalizeMatch = (match: any): MatchData => {
+  const oddLaneWins = toNumberOrUndefined(match?.oddLaneWins ?? match?.OddLaneWins);
+  const evenLaneWins = toNumberOrUndefined(match?.evenLaneWins ?? match?.EvenLaneWins);
+  const winningTeamId =
+    toNumberOrUndefined(match?.winningTeamId ?? match?.WinningTeamId) ??
+    toNumberOrUndefined(match?.winnerTeamId ?? match?.WinnerTeamId);
+  const hasResultRaw = match?.hasResult ?? match?.HasResult;
+
+  const hasResult =
+    typeof hasResultRaw === 'boolean'
+      ? hasResultRaw
+      : Boolean(
+          winningTeamId !== undefined ||
+          match?.winningTeamName ||
+          match?.WinningTeamName ||
+          oddLaneWins !== undefined ||
+          evenLaneWins !== undefined,
+        );
+
+  return {
+    matchId: toNumber(match?.matchId ?? match?.MatchId ?? match?.id),
+    tourneyLocation: match?.tourneyLocation ?? match?.TourneyLocation ?? '',
+    tourneyDate: match?.tourneyDate ?? match?.TourneyDate ?? '',
+    oddLaneTeam: match?.oddLaneTeam ?? match?.OddLaneTeam ?? '',
+    evenLaneTeam: match?.evenLaneTeam ?? match?.EvenLaneTeam ?? '',
+    lanes: match?.lanes ?? match?.Lanes ?? '',
+    tourneyId: toNumberOrUndefined(match?.tourneyId ?? match?.TourneyId),
+    oddLaneTeamId: toNumberOrUndefined(match?.oddLaneTeamId ?? match?.OddLaneTeamId),
+    evenLaneTeamId: toNumberOrUndefined(match?.evenLaneTeamId ?? match?.EvenLaneTeamId),
+    hasResult,
+    winningTeamId,
+    winningTeamName: match?.winningTeamName ?? match?.WinningTeamName,
+    oddLaneWins,
+    evenLaneWins,
+  };
+};
+
 export const fetchGlobalMatches = async (): Promise<MatchData[]> => {
   try {
     const response = await api.get('/Matches');
-    return response.data || [];
+    return (response.data || []).map(normalizeMatch);
   } catch (error) {
     throw handleApiError(error, 'fetchGlobalMatches');
   }

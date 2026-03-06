@@ -10,6 +10,7 @@ import {
 } from '../../../core/api';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../context/ToastContext';
+import BowlerProfileModal from '../components/BowlerProfileModal';
 
 function BowlersTable() {
   const [bowlers, setBowlers] = useState<Bowler[]>([]);
@@ -18,6 +19,8 @@ function BowlersTable() {
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [selectedBowler, setSelectedBowler] = useState<Bowler | null>(null);
+  const [showProfile, setShowProfile] = useState(false);
   const { role } = useAuth();
   const isAdmin = role === 'Admin';
   const navigate = useNavigate();
@@ -27,7 +30,7 @@ function BowlersTable() {
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: 'asc' | 'desc';
-  } | null>(null);
+  } | null>({ key: 'pins', direction: 'desc' });
 
   useEffect(() => {
     Promise.all([fetchAllBowlers(), fetchTeams(), fetchBowlerStats()])
@@ -146,6 +149,16 @@ function BowlersTable() {
     }
   };
 
+  const openBowlerProfile = (bowler: Bowler) => {
+    setSelectedBowler(bowler);
+    setShowProfile(true);
+  };
+
+  const closeBowlerProfile = () => {
+    setShowProfile(false);
+    setSelectedBowler(null);
+  };
+
   return (
     <div className="mt-28 min-h-screen pt-24 pb-12 bg-slate-50">
       <div className="container-custom">
@@ -252,7 +265,11 @@ function BowlersTable() {
                   filteredBowlers.slice((currentPage - 1) * 10, currentPage * 10).map((bowler) => {
                     const stat = stats.get(bowler.BowlerId);
                     return (
-                      <tr key={bowler.BowlerId} className="hover:bg-slate-50 transition-colors">
+                      <tr
+                        key={bowler.BowlerId}
+                        className="hover:bg-slate-50 transition-colors cursor-pointer"
+                        onClick={() => openBowlerProfile(bowler)}
+                      >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm">
@@ -288,13 +305,19 @@ function BowlersTable() {
                           <td className="px-6 py-4 text-right">
                             <div className="flex items-center justify-end gap-2">
                               <button
-                                onClick={() => navigate(`/bowlers/${bowler.BowlerId}/edit`)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/bowlers/${bowler.BowlerId}/edit`);
+                                }}
                                 className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded"
                               >
                                 Edit
                               </button>
                               <button
-                                onClick={() => handleDelete(bowler.BowlerId)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(bowler.BowlerId);
+                                }}
                                 className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded"
                               >
                                 Delete
@@ -359,6 +382,13 @@ function BowlersTable() {
           )}
         </div>
       </div>
+
+      <BowlerProfileModal
+        bowler={selectedBowler}
+        stats={selectedBowler ? stats.get(selectedBowler.BowlerId) : undefined}
+        isOpen={showProfile}
+        onClose={closeBowlerProfile}
+      />
     </div>
   );
 }

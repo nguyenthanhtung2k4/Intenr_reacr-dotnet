@@ -9,6 +9,8 @@ import {
 } from '../../../core/api';
 import { Bowler, BowlerStatsData } from '../../../types/Bowler';
 import { MatchData } from '../../../types/Match';
+import BowlerProfileModal from '../../bowlers/components/BowlerProfileModal';
+import MatchResultModal from '../components/MatchResultModal';
 
 const TourMatch = () => {
   const [topBowlers, setTopBowlers] = useState<Bowler[]>([]);
@@ -16,6 +18,8 @@ const TourMatch = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<Map<number, BowlerStatsData>>(new Map());
+  const [selectedMatch, setSelectedMatch] = useState<MatchData | null>(null);
+  const [showMatchResult, setShowMatchResult] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,11 +41,13 @@ const TourMatch = () => {
           const statB = statsMap.get(b.BowlerId)?.averageScore || 0;
           return statB - statA;
         });
-        const date_match = [...allMatches].sort(
-          (a, b) => new Date(b.tourneyDate).getTime() - new Date(a.tourneyDate).getTime(),
-        );
+        const date_match = [...allMatches].sort((a, b) => {
+          const timeDiff = new Date(b.tourneyDate).getTime() - new Date(a.tourneyDate).getTime();
+          if (timeDiff !== 0) return timeDiff;
+          return b.matchId - a.matchId;
+        });
         setTopBowlers(sortedBowlers.slice(0, 8));
-        setRecentMatches(date_match.slice(0, 8));
+        setRecentMatches(date_match.slice(0, 4));
         setTeams(allTeams.slice(0, 10));
         setLoading(false);
       } catch (error) {
@@ -52,6 +58,34 @@ const TourMatch = () => {
 
     fetchData();
   }, []);
+
+  const [selectedBowler, setSelectedBowler] = useState<Bowler | null>(null);
+  const [showProfile, setShowProfile] = useState(false);
+
+  const openBowlerProfile = (bowler: Bowler) => {
+    setSelectedBowler(bowler);
+    setShowProfile(true);
+  };
+
+  const closeBowlerProfile = () => {
+    setShowProfile(false);
+    setSelectedBowler(null);
+  };
+
+  const hasMatchResult = (match: MatchData) =>
+    Boolean(
+      match.hasResult ||
+      match.winningTeamName ||
+      match.winningTeamId !== undefined ||
+      match.oddLaneWins !== undefined ||
+      match.evenLaneWins !== undefined,
+    );
+
+  const openMatchResult = (match: MatchData) => {
+    if (!hasMatchResult(match)) return;
+    setSelectedMatch(match);
+    setShowMatchResult(true);
+  };
 
   console.log('RECENT: ', recentMatches);
   console.log('TEAMS: ', teams);
@@ -222,9 +256,12 @@ const TourMatch = () => {
             {topBowlers.map((bowler, index) => {
               const stat = stats.get(bowler.BowlerId);
               return (
-                <div
+                <button
+                  type="button"
+                  onClick={() => openBowlerProfile(bowler)}
                   key={bowler.BowlerId}
-                  className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group"
+                  className="w-full text-left bg-white p-6 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  aria-label={`View profile of ${bowler.bowlerFirstName} ${bowler.bowlerLastName}`}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div
@@ -252,7 +289,7 @@ const TourMatch = () => {
                       </span>
                     )}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -279,7 +316,12 @@ const TourMatch = () => {
             {recentMatches.map((match) => (
               <div
                 key={match.matchId}
-                className="bg-white border border-slate-200 rounded-xl p-6 hover:border-blue-300 transition-colors shadow-sm"
+                className={`bg-white border rounded-xl p-6 transition-colors shadow-sm ${
+                  hasMatchResult(match)
+                    ? 'border-slate-200 hover:border-blue-300 cursor-pointer'
+                    : 'border-slate-200'
+                }`}
+                onClick={() => openMatchResult(match)}
               >
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                   {/* Date & Location */}
@@ -306,12 +348,22 @@ const TourMatch = () => {
                   <div className="flex-1 flex items-center justify-center gap-4 md:gap-8 w-full border-t md:border-t-0 md:border-l md:border-r border-slate-100 py-4 md:py-0 px-4">
                     <div className="flex-1 text-right font-bold text-slate-900 text-lg">
                       {match.oddLaneTeam}
+                      {hasMatchResult(match) && (
+                        <span className="ml-2 text-sm text-blue-700">
+                          ({match.oddLaneWins || 0})
+                        </span>
+                      )}
                     </div>
                     <div className="bg-slate-100 text-slate-500 text-xs font-bold px-2 py-1 rounded">
                       VS
                     </div>
                     <div className="flex-1 text-left font-bold text-slate-900 text-lg">
                       {match.evenLaneTeam}
+                      {hasMatchResult(match) && (
+                        <span className="ml-2 text-sm text-blue-700">
+                          ({match.evenLaneWins || 0})
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -321,6 +373,15 @@ const TourMatch = () => {
                       Lanes
                     </span>
                     <div className="text-xl font-black text-blue-600">{match.lanes}</div>
+                    {hasMatchResult(match) ? (
+                      <span className="inline-block mt-2 px-2 py-1 text-[10px] font-bold uppercase rounded-full bg-green-100 text-green-700">
+                        click detail
+                      </span>
+                    ) : (
+                      <span className="inline-block mt-2 px-2 py-1 text-[10px] font-bold uppercase rounded-full bg-slate-100 text-slate-500">
+                        Scheduled
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -340,6 +401,17 @@ const TourMatch = () => {
           </div>
         </div>
       </section>
+
+      <BowlerProfileModal
+        bowler={selectedBowler}
+        stats={selectedBowler ? stats.get(selectedBowler.BowlerId) : undefined}
+        isOpen={showProfile}
+        onClose={closeBowlerProfile}
+      />
+
+      {showMatchResult && selectedMatch && (
+        <MatchResultModal match={selectedMatch} onClose={() => setShowMatchResult(false)} />
+      )}
     </div>
   );
 };
